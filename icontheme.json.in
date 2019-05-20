@@ -1,0 +1,12 @@
+{
+    "Name" : "icontheme",
+    "Version" : "${icontheme_VERSION_MAJOR}.${icontheme_VERSION_MINOR}.${icontheme_VERSION_PATCH}",
+    "CompatVersion" : "${icontheme_VERSION_MAJOR}.${icontheme_VERSION_MINOR}.${icontheme_VERSION_PATCH}",
+    "Vendor" : "Andreas Schulz",
+    "Copyright" : "(C) 2019 Andreas Schulz",
+    "License" : "MIT",
+    "Category" : "Qt Creator",
+    "Description" : "Custon icon theme for Qt Creator.",
+    "Url" : "https://github.com/Longhanks/qtcreator-plugin-icontheme",
+    "Dependencies" : []
+}

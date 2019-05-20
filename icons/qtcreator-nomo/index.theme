@@ -1,0 +1,11 @@
+[Icon Theme]
+Name=qtcreator-nomo
+Comment=qtcreator-nomo
+
+Directories=scalable/places
+
+[scalable/places]
+Size=64
+Type=Scalable
+MinSize=1
+MaxSize=1024

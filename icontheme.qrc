@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons/qtcreator-nomo/index.theme</file>
+        <file>icons/qtcreator-nomo/scalable/places/folder.pdf</file>
+        <file>icons/qtcreator-nomo/scalable/places/folder.svg</file>
+    </qresource>
+</RCC>
