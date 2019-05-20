@@ -74,6 +74,10 @@ IconThemePlugin::IconThemePlugin() {
     if (!fallbackThemeName.isEmpty()) {
         QIcon::setFallbackThemeName(fallbackThemeName);
     }
+
+#ifdef MUST_SETUP_OBJC
+    setupObjC();
+#endif
 }
 
 bool IconThemePlugin::initialize([[maybe_unused]] const QStringList &arguments,

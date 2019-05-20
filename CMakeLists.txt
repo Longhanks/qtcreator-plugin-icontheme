@@ -47,24 +47,36 @@ project(icontheme LANGUAGES CXX VERSION 0.1.0)
 
 configure_file("${CMAKE_SOURCE_DIR}/icontheme.json.in" "${CMAKE_CURRENT_BINARY_DIR}/icontheme.json")
 
-add_library(icontheme SHARED icontheme.qrc plugin.cpp)
+add_library(icontheme SHARED icontheme.qrc)
+
+if (APPLE)
+    target_sources(icontheme PRIVATE plugin.mm)
+else ()
+    target_sources(icontheme PRIVATE plugin.cpp)
+endif ()
 
 set_target_properties(icontheme PROPERTIES AUTOMOC ON AUTORCC ON)
 
 target_include_directories(icontheme PRIVATE
     "${CMAKE_CURRENT_BINARY_DIR}"
     "${Qt5Widgets_INCLUDE_DIRS}"
+    "${Qt5Gui_INCLUDE_DIRS}"
+    "${Qt5Core_INCLUDE_DIRS}"
     "${QTCREATOR_SRC}/src/libs"
     "${QTCREATOR_SRC}/src/plugins"
     )
 
 if (APPLE)
+    find_library(APPKIT_LIB NAMES AppKit)
     find_library(EXTENSIONSYSTEM_LIB NAMES ExtensionSystem PATHS "${QTCREATOR_BIN_DIR}/../Frameworks")
     find_library(QTGUI_LIB NAMES QtGui PATHS "${QTCREATOR_BIN_DIR}/../Frameworks" NO_DEFAULT_PATH)
     find_library(QTCORE_LIB NAMES QtCore PATHS "${QTCREATOR_BIN_DIR}/../Frameworks" NO_DEFAULT_PATH)
     target_link_options(icontheme PRIVATE
         "-Wl,-install_name,@rpath/PlugIns/"
         "-compatibility_version ${QTCREATOR_VERSION}"
+    )
+    target_link_libraries(icontheme PRIVATE
+        "${APPKIT_LIB}"
     )
 else ()
     find_library(EXTENSIONSYSTEM_LIB NAMES ExtensionSystem PATHS "${QTCREATOR_BIN_DIR}/../lib/qtcreator")
