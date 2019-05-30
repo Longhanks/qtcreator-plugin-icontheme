@@ -57,7 +57,8 @@ IconThemePlugin::IconThemePlugin() {
                 configDir = QDir::home().absolutePath() + "/.config";
             }
 
-            auto settings = QSettings(configDir + "/kdeglobals", QSettings::IniFormat);
+            auto settings =
+                QSettings(configDir + "/kdeglobals", QSettings::IniFormat);
             auto val = settings.value("Icons/Theme");
 
             if (val.canConvert<QString>()) {
@@ -84,6 +85,13 @@ bool IconThemePlugin::initialize([[maybe_unused]] const QStringList &arguments,
                                  [[maybe_unused]] QString *errorString) {
 
     return true;
+}
+
+ExtensionSystem::IPlugin::ShutdownFlag IconThemePlugin::aboutToShutdown() {
+#ifdef MUST_SETUP_OBJC
+    releaseObjcC();
+#endif
+    return SynchronousShutdown;
 }
 
 } // namespace IconTheme::Internal

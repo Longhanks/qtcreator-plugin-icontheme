@@ -5,7 +5,7 @@
 #include <QFile>
 
 static IMP originalIconForFile;
-static QByteArray folderIconData;
+static QByteArray *folderIconData;
 
 static id customThemeIconForFile(id objc_self, SEL objc_cmd, id fullPath) {
     BOOL isDir = NO;
@@ -13,7 +13,7 @@ static id customThemeIconForFile(id objc_self, SEL objc_cmd, id fullPath) {
         fileExistsAtPath:reinterpret_cast<NSString *>(fullPath)
              isDirectory:&isDir];
     if (isDir) {
-        return [[NSImage alloc] initWithData:folderIconData.toRawNSData()];
+        return [[NSImage alloc] initWithData:folderIconData->toRawNSData()];
     }
     return reinterpret_cast<NSImage *>(
         originalIconForFile(objc_self, objc_cmd, fullPath));
@@ -29,7 +29,11 @@ static void setupObjC() {
     auto folderIconFile =
         QFile(":/icons/qtcreator-nomo/scalable/places/folder.pdf");
     folderIconFile.open(QIODevice::ReadOnly);
-    folderIconData = folderIconFile.readAll();
+    folderIconData = new QByteArray(folderIconFile.readAll());
+}
+
+static void releaseObjcC() {
+    delete folderIconData;
 }
 
 #define MUST_SETUP_OBJC
