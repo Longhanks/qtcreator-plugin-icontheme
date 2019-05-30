@@ -55,13 +55,67 @@ else ()
     target_sources(icontheme PRIVATE plugin.cpp)
 endif ()
 
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "(Apple)?[Cc]lang" AND NOT MSVC)
+    list(APPEND COMPILER_WARNINGS
+        "-Weverything"
+        "-Wno-c++98-compat"
+        "-Wno-c++98-compat-pedantic"
+        )
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    list(APPEND COMPILER_WARNINGS
+        "-Wall"
+        "-Wcast-align"
+        "-Wcast-qual"
+        "-Wconversion"
+        "-Wctor-dtor-privacy"
+        "-Wdisabled-optimization"
+        "-Wdouble-promotion"
+        "-Wduplicated-branches"
+        "-Wduplicated-cond"
+        "-Wextra"
+        "-Wformat=2"
+        "-Winvalid-pch"
+        "-Wlogical-op"
+        "-Wmisleading-indentation"
+        "-Wmissing-include-dirs"
+        "-Wnoexcept"
+        "-Wnon-virtual-dtor"
+        "-Wnull-dereference"
+        "-Wold-style-cast"
+        "-Woverloaded-virtual"
+        "-Woverloaded-virtual"
+        "-Wpedantic"
+        "-Wpointer-arith"
+        "-Wredundant-decls"
+        "-Wshadow"
+        "-Wshift-overflow=2"
+        "-Wsign-conversion"
+        "-Wsized-deallocation"
+        "-Wtrampolines"
+        "-Wundef"
+        "-Wunused"
+        "-Wuseless-cast"
+        "-Wvector-operation-performance"
+        "-Wwrite-strings"
+        "-Wzero-as-null-pointer-constant"
+        "-pedantic-errors"
+        )
+else ()
+    message(STATUS "ToDo MSVC warnings...")
+endif ()
+string(REPLACE ";" " " COMPILER_WARNINGS_STR "${COMPILER_WARNINGS}")
+
+get_target_property(icontheme_SOURCES icontheme SOURCES)
+
+foreach (icontheme_SOURCE ${icontheme_SOURCES})
+    set_source_files_properties(${icontheme_SOURCE} PROPERTIES COMPILE_FLAGS "${COMPILER_WARNINGS_STR}")
+endforeach ()
+
 set_target_properties(icontheme PROPERTIES AUTOMOC ON AUTORCC ON)
 
-target_include_directories(icontheme PRIVATE
+target_include_directories(icontheme SYSTEM PRIVATE
     "${CMAKE_CURRENT_BINARY_DIR}"
-    "${Qt5Widgets_INCLUDE_DIRS}"
     "${Qt5Gui_INCLUDE_DIRS}"
-    "${Qt5Core_INCLUDE_DIRS}"
     "${QTCREATOR_SRC}/src/libs"
     "${QTCREATOR_SRC}/src/plugins"
     )
@@ -69,11 +123,12 @@ target_include_directories(icontheme PRIVATE
 if (APPLE)
     find_library(APPKIT_LIB NAMES AppKit)
     find_library(EXTENSIONSYSTEM_LIB NAMES ExtensionSystem PATHS "${QTCREATOR_BIN_DIR}/../Frameworks")
-    find_library(QTGUI_LIB NAMES QtGui PATHS "${QTCREATOR_BIN_DIR}/../Frameworks" NO_DEFAULT_PATH)
-    find_library(QTCORE_LIB NAMES QtCore PATHS "${QTCREATOR_BIN_DIR}/../Frameworks" NO_DEFAULT_PATH)
+    set(QTGUI_LIB "-framework QtGui")
+    set(QTCORE_LIB "-framework QtCore")
     target_link_options(icontheme PRIVATE
-        "-Wl,-install_name,@rpath/PlugIns/"
-        "-compatibility_version ${QTCREATOR_VERSION}"
+        -Wl,-install_name,@rpath/PlugIns/
+        -compatibility_version "${QTCREATOR_VERSION}"
+        -iframework "${QTCREATOR_BIN_DIR}/../Frameworks"
     )
     target_link_libraries(icontheme PRIVATE
         "${APPKIT_LIB}"
