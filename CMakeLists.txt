@@ -141,7 +141,6 @@ else ()
 endif ()
 
 target_link_libraries(icontheme PRIVATE
-    "${CORE_LIB}"
     "${EXTENSIONSYSTEM_LIB}"
     "${QTGUI_LIB}"
     "${QTCORE_LIB}"
