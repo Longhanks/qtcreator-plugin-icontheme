@@ -19,14 +19,16 @@ if (APPLE)
 endif ()
 
 set(QTCREATOR_SRC "" CACHE PATH "Path to Qt Creator sources")
-set(QTCREATOR_BIN "" CACHE FILEPATH "Path to Qt Creator binary")
+if (NOT WIN32)
+    set(QTCREATOR_BIN "" CACHE FILEPATH "Path to Qt Creator binary")
+endif ()
 set(QTCREATOR_VERSION "4.9.0" CACHE STRING "Target version of Qt Creator")
 
 if (NOT EXISTS "${QTCREATOR_SRC}/src/qtcreatorplugin.pri")
     message(FATAL_ERROR "QTCREATOR_SRC must point to Qt Creator sources.")
 endif ()
 
-if (NOT EXISTS "${QTCREATOR_BIN}")
+if (NOT WIN32 AND NOT EXISTS "${QTCREATOR_BIN}")
     message(FATAL_ERROR "QTCREATOR_BIN must point to the Qt Creator executable.")
 endif ()
 
@@ -60,7 +62,8 @@ if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "(Apple)?[Cc]lang" AND NOT MSVC)
         "-Weverything"
         "-Wno-c++98-compat"
         "-Wno-c++98-compat-pedantic"
-        )
+        "-Wno-padded"
+    )
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     list(APPEND COMPILER_WARNINGS
         "-Wall"
@@ -101,7 +104,12 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         "-pedantic-errors"
         )
 else ()
-    message(STATUS "ToDo MSVC warnings...")
+    foreach (flag_var CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+        string(REPLACE "/W3" "" ${flag_var} "${${flag_var}}")
+    endforeach()
+    list(APPEND COMPILER_WARNINGS
+        "/W4"
+    )
 endif ()
 string(REPLACE ";" " " COMPILER_WARNINGS_STR "${COMPILER_WARNINGS}")
 
@@ -133,11 +141,15 @@ if (APPLE)
     target_link_libraries(icontheme PRIVATE
         "${APPKIT_LIB}"
     )
-else ()
+elseif (UNIX)
     find_library(EXTENSIONSYSTEM_LIB NAMES ExtensionSystem PATHS "${QTCREATOR_BIN_DIR}/../lib/qtcreator")
     set(QTGUI_LIB "${Qt5Gui_LIBRARIES}")
     set(QTCORE_LIB "${Qt5Core_LIBRARIES}")
     set_target_properties(icontheme PROPERTIES INSTALL_RPATH_USE_LINK_PATH ON)
+else ()
+    find_library(EXTENSIONSYSTEM_LIB NAMES ExtensionSystem4 PATHS "${CMAKE_SOURCE_DIR}/lib/qtcreator")
+    set(QTGUI_LIB "${Qt5Gui_LIBRARIES}")
+    set(QTCORE_LIB "${Qt5Core_LIBRARIES}")
 endif ()
 
 target_link_libraries(icontheme PRIVATE
@@ -149,6 +161,16 @@ target_link_libraries(icontheme PRIVATE
 if (APPLE)
     install(TARGETS icontheme DESTINATION "${QTCREATOR_BIN_DIR}/../PlugIns")
     install(CODE "execute_process(COMMAND \"sudo xattr -rd com.apple.quarantine ${QTCREATOR_BIN_DIR}/../../\")")
+elseif (UNIX)
+    install(TARGETS minimap DESTINATION "${QTCREATOR_BIN_DIR}/../lib/qtcreator/plugins")
 else ()
-    install(TARGETS icontheme DESTINATION "${QTCREATOR_BIN_DIR}/../lib/qtcreator/plugins")
+    file(TO_CMAKE_PATH $ENV{LOCALAPPDATA} LOCALAPPDATA_PATH)
+    if ("${LOCALAPPDATA_PATH}" STREQUAL "")
+        message(FATAL_ERROR "%LOCALAPPDATA% not set - plugin cannot be installed")
+    endif ()
+    set(PLUGINDIR_PATH "${LOCALAPPDATA_PATH}/QtProject/QtCreator/plugins/${QTCREATOR_VERSION}")
+    if (NOT IS_DIRECTORY "${PLUGINDIR_PATH}")
+        file(MAKE_DIRECTORY "${PLUGINDIR_PATH}")
+    endif ()
+    install(TARGETS icontheme RUNTIME DESTINATION "${PLUGINDIR_PATH}")
 endif ()

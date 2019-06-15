@@ -34,3 +34,6 @@
 CMakeLists.txt.user
 
 build/
+
+!lib/qtcreator/*.lib
+!lib/qtcreator/*.dll
