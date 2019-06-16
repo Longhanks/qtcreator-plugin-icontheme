@@ -1,9 +1,39 @@
 #include "plugin.h"
 
+#ifdef __APPLE__
+#include <objc/message.h>
+#include <objc/runtime.h>
+#endif
+
 #include <QDir>
 #include <QFile>
 #include <QIcon>
 #include <QSettings>
+
+#ifdef __APPLE__
+static IMP originalIconForFile;
+static QByteArray *folderIconData;
+
+static id customThemeIconForFile(id objc_self, SEL objc_cmd, id fullPath) {
+    BOOL isDir = NO;
+    Class NSFileManager = objc_getClass("NSFileManager");
+    id defaultManager = objc_msgSend(reinterpret_cast<id>(NSFileManager),
+                                     sel_registerName("defaultManager"));
+    objc_msgSend(defaultManager,
+                 sel_registerName("fileExistsAtPath:isDirectory:"),
+                 fullPath,
+                 reinterpret_cast<id>(&isDir));
+    if (isDir) {
+        Class NSImage = objc_getClass("NSImage");
+        id imageMemory = objc_msgSend(reinterpret_cast<id>(NSImage),
+                                      sel_registerName("alloc"));
+        return objc_msgSend(imageMemory,
+                            sel_registerName("initWithData:"),
+                            folderIconData->toRawNSData());
+    }
+    return originalIconForFile(objc_self, objc_cmd, fullPath);
+}
+#endif
 
 inline void init_resource() {
     Q_INIT_RESOURCE(icontheme);
@@ -76,8 +106,17 @@ IconThemePlugin::IconThemePlugin() {
         QIcon::setFallbackThemeName(fallbackThemeName);
     }
 
-#ifdef MUST_SETUP_OBJC
-    setupObjC();
+#ifdef __APPLE__
+    Class NSWorkspace = objc_getClass("NSWorkspace");
+    Method methodIconForFile =
+        class_getInstanceMethod(NSWorkspace, sel_registerName("iconForFile:"));
+    originalIconForFile = method_getImplementation(methodIconForFile);
+    method_setImplementation(methodIconForFile,
+                             reinterpret_cast<IMP>(customThemeIconForFile));
+    auto folderIconFile =
+        QFile(":/icons/qtcreator-nomo/scalable/places/folder.pdf");
+    folderIconFile.open(QIODevice::ReadOnly);
+    folderIconData = new QByteArray(folderIconFile.readAll());
 #endif
 }
 
@@ -88,8 +127,8 @@ bool IconThemePlugin::initialize([[maybe_unused]] const QStringList &arguments,
 }
 
 ExtensionSystem::IPlugin::ShutdownFlag IconThemePlugin::aboutToShutdown() {
-#ifdef MUST_SETUP_OBJC
-    releaseObjcC();
+#ifdef __APPLE__
+    delete folderIconData;
 #endif
     return SynchronousShutdown;
 }
