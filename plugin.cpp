@@ -122,7 +122,6 @@ IconThemePlugin::IconThemePlugin() {
 
 bool IconThemePlugin::initialize([[maybe_unused]] const QStringList &arguments,
                                  [[maybe_unused]] QString *errorString) {
-
     return true;
 }
 
