@@ -49,7 +49,7 @@ project(icontheme LANGUAGES CXX VERSION 0.1.0)
 
 configure_file("${CMAKE_SOURCE_DIR}/icontheme.json.in" "${CMAKE_CURRENT_BINARY_DIR}/icontheme.json")
 
-add_library(icontheme SHARED icontheme.qrc plugin.cpp)
+add_library(${PROJECT_NAME} SHARED icontheme.qrc plugin.cpp)
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "(Apple)?[Cc]lang" AND NOT MSVC)
     list(APPEND COMPILER_WARNINGS
@@ -107,15 +107,15 @@ else ()
 endif ()
 string(REPLACE ";" " " COMPILER_WARNINGS_STR "${COMPILER_WARNINGS}")
 
-get_target_property(icontheme_SOURCES icontheme SOURCES)
+get_target_property(${PROJECT_NAME}_SOURCES ${PROJECT_NAME} SOURCES)
 
-foreach (icontheme_SOURCE ${icontheme_SOURCES})
-    set_source_files_properties(${icontheme_SOURCE} PROPERTIES COMPILE_FLAGS "${COMPILER_WARNINGS_STR}")
+foreach (${PROJECT_NAME}_SOURCE ${${PROJECT_NAME}_SOURCES})
+    set_source_files_properties(${${PROJECT_NAME}_SOURCE} PROPERTIES COMPILE_FLAGS "${COMPILER_WARNINGS_STR}")
 endforeach ()
 
-set_target_properties(icontheme PROPERTIES AUTOMOC ON AUTORCC ON)
+set_target_properties(${PROJECT_NAME} PROPERTIES AUTOMOC ON AUTORCC ON)
 
-target_include_directories(icontheme SYSTEM PRIVATE
+target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE
     "${CMAKE_CURRENT_BINARY_DIR}"
     "${Qt5Gui_INCLUDE_DIRS}"
     "${QTCREATOR_SRC}/src/libs"
@@ -127,36 +127,36 @@ if (APPLE)
     find_library(EXTENSIONSYSTEM_LIB NAMES ExtensionSystem PATHS "${QTCREATOR_BIN_DIR}/../Frameworks")
     set(QTGUI_LIB "-framework QtGui")
     set(QTCORE_LIB "-framework QtCore")
-    target_link_options(icontheme PRIVATE
+    target_link_options(${PROJECT_NAME} PRIVATE
         -Wl,-install_name,@rpath/PlugIns/
         -compatibility_version "${QTCREATOR_VERSION}"
         -iframework "${QTCREATOR_BIN_DIR}/../Frameworks"
     )
-    target_link_libraries(icontheme PRIVATE
+    target_link_libraries(${PROJECT_NAME} PRIVATE
         "${APPKIT_LIB}"
     )
 elseif (UNIX)
     find_library(EXTENSIONSYSTEM_LIB NAMES ExtensionSystem PATHS "${QTCREATOR_BIN_DIR}/../lib/qtcreator")
-    set(QTGUI_LIB "${Qt5Gui_LIBRARIES}")
-    set(QTCORE_LIB "${Qt5Core_LIBRARIES}")
-    set_target_properties(icontheme PROPERTIES INSTALL_RPATH_USE_LINK_PATH ON)
+    set(QTGUI_LIB "${QTCREATOR_BIN_DIR}/../lib/Qt/lib/libQt5Gui.so.5")
+    set(QTCORE_LIB "${QTCREATOR_BIN_DIR}/../lib/Qt/lib/libQt5Core.so.5")
+    set_target_properties(${PROJECT_NAME} PROPERTIES INSTALL_RPATH_USE_LINK_PATH ON)
 else ()
     find_library(EXTENSIONSYSTEM_LIB NAMES ExtensionSystem4 PATHS "${CMAKE_SOURCE_DIR}/lib/qtcreator")
     set(QTGUI_LIB "${Qt5Gui_LIBRARIES}")
     set(QTCORE_LIB "${Qt5Core_LIBRARIES}")
 endif ()
 
-target_link_libraries(icontheme PRIVATE
+target_link_libraries(${PROJECT_NAME} PRIVATE
     "${EXTENSIONSYSTEM_LIB}"
     "${QTGUI_LIB}"
     "${QTCORE_LIB}"
 )
 
 if (APPLE)
-    install(TARGETS icontheme DESTINATION "${QTCREATOR_BIN_DIR}/../PlugIns")
+    install(TARGETS ${PROJECT_NAME} DESTINATION "${QTCREATOR_BIN_DIR}/../PlugIns")
     install(CODE "execute_process(COMMAND \"sudo xattr -rd com.apple.quarantine ${QTCREATOR_BIN_DIR}/../../\")")
 elseif (UNIX)
-    install(TARGETS minimap DESTINATION "${QTCREATOR_BIN_DIR}/../lib/qtcreator/plugins")
+    install(TARGETS ${PROJECT_NAME} DESTINATION "${QTCREATOR_BIN_DIR}/../lib/qtcreator/plugins")
 else ()
     file(TO_CMAKE_PATH $ENV{LOCALAPPDATA} LOCALAPPDATA_PATH)
     if ("${LOCALAPPDATA_PATH}" STREQUAL "")
@@ -166,5 +166,5 @@ else ()
     if (NOT IS_DIRECTORY "${PLUGINDIR_PATH}")
         file(MAKE_DIRECTORY "${PLUGINDIR_PATH}")
     endif ()
-    install(TARGETS icontheme RUNTIME DESTINATION "${PLUGINDIR_PATH}")
+    install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION "${PLUGINDIR_PATH}")
 endif ()
