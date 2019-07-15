@@ -10,6 +10,14 @@
 #include <QIcon>
 #include <QSettings>
 
+#if defined(GTK3_FOUND) && !defined(__APPLE__) && !defined(_WIN32)
+#ifdef signals
+#undef signals
+#endif
+#include <gtk/gtk.h>
+#include <qobjectdefs.h>
+#endif
+
 #ifdef __APPLE__
 static IMP originalIconForFile;
 static QByteArray *folderIconData;
@@ -97,7 +105,20 @@ IconThemePlugin::IconThemePlugin() {
 
             return QString();
         }
-        // TODO: Implement GNOME/Gtk
+#if defined(GTK3_FOUND) && !defined(__APPLE__) && !defined(_WIN32)
+        else {
+            if (!gtk_init_check(nullptr, nullptr)) {
+                return QIcon::themeName();
+            }
+            GtkSettings *settings = gtk_settings_get_default();
+            gchararray iconThemeName;
+            g_object_get(settings, "gtk-icon-theme-name", &iconThemeName, nullptr);
+            auto qIconThemeName = QString::fromUtf8(iconThemeName);
+            if (!qIconThemeName.isEmpty()) {
+                return qIconThemeName;
+            }
+        }
+#endif
         return QIcon::themeName();
     }();
 
