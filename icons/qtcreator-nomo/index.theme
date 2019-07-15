@@ -2,9 +2,15 @@
 Name=qtcreator-nomo
 Comment=qtcreator-nomo
 
-Directories=scalable/places
+Directories=scalable/places,scalable/mimetypes
 
 [scalable/places]
+Size=64
+Type=Scalable
+MinSize=1
+MaxSize=1024
+
+[scalable/mimetypes]
 Size=64
 Type=Scalable
 MinSize=1
