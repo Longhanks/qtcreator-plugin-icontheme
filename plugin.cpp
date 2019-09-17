@@ -18,6 +18,8 @@
 #include <qobjectdefs.h>
 #endif
 
+#include <optional>
+
 #ifdef __APPLE__
 static IMP originalIconForFile;
 static QByteArray *folderIconData;
@@ -85,10 +87,10 @@ static inline QByteArray getDesktopEnvironment() {
     return QByteArrayLiteral("UNKNOWN");
 }
 
-IconThemePlugin::IconThemePlugin() {
+IconThemePlugin::IconThemePlugin() noexcept {
     init_resource();
 
-    const QString fallbackThemeName = []() -> QString {
+    const auto fallbackThemeName = []() -> std::optional<QString> {
         if (getDesktopEnvironment() == QByteArrayLiteral("KDE")) {
             auto configDir = qEnvironmentVariable("XDG_CONFIG_DIRS");
             if (configDir.isEmpty()) {
@@ -103,7 +105,7 @@ IconThemePlugin::IconThemePlugin() {
                 return val.toString();
             }
 
-            return QString();
+            return std::nullopt;
         }
 #if defined(GTK3_FOUND) && !defined(__APPLE__) && !defined(_WIN32)
         else {
@@ -112,7 +114,8 @@ IconThemePlugin::IconThemePlugin() {
             }
             GtkSettings *settings = gtk_settings_get_default();
             gchararray iconThemeName;
-            g_object_get(settings, "gtk-icon-theme-name", &iconThemeName, nullptr);
+            g_object_get(
+                settings, "gtk-icon-theme-name", &iconThemeName, nullptr);
             auto qIconThemeName = QString::fromUtf8(iconThemeName);
             if (!qIconThemeName.isEmpty()) {
                 return qIconThemeName;
@@ -123,8 +126,8 @@ IconThemePlugin::IconThemePlugin() {
     }();
 
     QIcon::setThemeName("qtcreator-nomo");
-    if (!fallbackThemeName.isEmpty()) {
-        QIcon::setFallbackThemeName(fallbackThemeName);
+    if (fallbackThemeName.has_value()) {
+        QIcon::setFallbackThemeName(*fallbackThemeName);
     }
 
 #ifdef __APPLE__

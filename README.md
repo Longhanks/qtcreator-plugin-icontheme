@@ -2,6 +2,9 @@
 
 Custom icon theme for [Qt Creator](http://qt-project.org/wiki/Category:Tools::QtCreator).
 
+
+[![Actions Status](https://github.com/Longhanks/qtcreator-plugin-icontheme/workflows/Continuous%20Integration/badge.svg)](https://github.com/Longhanks/qtcreator-plugin-icontheme/actions)
+
 ## Copyright / License
 
 Copyright (C) 2019 Andreas Schulz. All rights reserved.

@@ -6,13 +6,13 @@
 
 namespace IconTheme::Internal {
 
-class IconThemePlugin : public ExtensionSystem::IPlugin {
+class IconThemePlugin final : public ExtensionSystem::IPlugin {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QtCreatorPlugin" FILE
                           "icontheme.json")
 
 public:
-    IconThemePlugin();
+    explicit IconThemePlugin() noexcept;
     bool initialize(const QStringList &arguments,
                     QString *errorString) override;
     void extensionsInitialized() override {}
